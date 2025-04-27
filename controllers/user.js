@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jsonwebtoken from "jsonwebtoken";
 
 import { User } from "../models/user.js";
 
@@ -59,11 +60,17 @@ export const loginUser = async (req, res) => {
 
     const validPassword = await bcrypt.compare(password, userDetails.password);
 
-    if (validPassword) {
-      res.status(200).json({ message: "Login Successfully" });
-    } else {
-      res.status(400).json({ message: "Invalid Password" });
-    }
+    if (!validPassword)
+      return res.status(400).json({ message: "Invalid Password" });
+
+    const token = jsonwebtoken.sign(
+      { user: userDetails },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+    console.log({ token });
+
+    res.status(200).json({ message: "Login Successfully", token });
   } catch (err) {
     console.error(err);
     res.status(500).json({
