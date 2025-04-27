@@ -1,14 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { registerUser, loginUser } from "./controllers/user.js";
-import {
-  createContact,
-  getContactsList,
-  getContactById,
-  deleteContactById,
-} from "./controllers/contact.js";
-import { updateContactById } from "./controllers/contact.js";
+
+import userRoutes from "./routes/user-route.js";
+import contactRoutes from "./routes/contact-route.js";
 
 dotenv.config();
 
@@ -24,18 +19,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.json({ message: "Home Page" });
-});
-
-app.post("/api/user/register", registerUser);
-app.post("/api/user/login", loginUser);
-
-app.post("/api/contact/new", createContact);
-app.get("/api/contact/list", getContactsList);
-app.get("/api/contact", getContactById);
-app.put("/api/contact/:id", updateContactById);
-app.delete("/api/contact/:id", deleteContactById);
+app.use("/api/user", userRoutes);
+app.use("/api/contact", contactRoutes);
 
 
 
