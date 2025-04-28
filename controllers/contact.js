@@ -101,7 +101,6 @@ export const deleteContactById = async (req, res) => {
 
 export const getUserSpecificContacts = async (req, res) => {
   const id = req.params.id;
-  console.log({ id });
   const contactsList = await Contact.find({ user: id });
 
   res.status(200).json({
