@@ -13,7 +13,13 @@ export const createContact = async (req, res) => {
 
     const { name, email, phone, type } = body;
 
-    const saveContact = await Contact.create({ name, email, phone, type });
+    const saveContact = await Contact.create({
+      name,
+      email,
+      phone,
+      type,
+      user: req.user,
+    });
     res.status(201).json({ message: "Contact Created Successfully" });
   } catch (err) {
     console.error(err);
@@ -67,6 +73,7 @@ export const updateContactById = async (req, res) => {
       email,
       phone,
       type,
+      user: req.user,
     },
     { new: true }
   );
@@ -89,5 +96,17 @@ export const deleteContactById = async (req, res) => {
 
   res.status(200).json({
     message: "Contact Deleted Successfully",
+  });
+};
+
+export const getUserSpecificContacts = async (req, res) => {
+  const id = req.params.id;
+  console.log({ id });
+  const contactsList = await Contact.find({ user: id });
+
+  res.status(200).json({
+    message: "Contact Fetched Successfully",
+    results: contactsList,
+    count: contactsList.length,
   });
 };
