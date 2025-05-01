@@ -10,7 +10,7 @@ export const registerUser = async (req, res) => {
 
     for (const field of requireFields) {
       if (!body[field]) {
-        return res.status(400).json({ message });
+        return res.status(400).json({ message: `${field} is required` });
       }
     }
 
