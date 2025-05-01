@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/update", isAuthenticated, upsertContact);
 router.get("/list", isAuthenticated, getContactsList);
 router.get("/", isAuthenticated, getContactById);
-router.put("/update/:id", isAuthenticated, upsertContact);
+router.post("/update/:id", isAuthenticated, upsertContact);
 router.delete("/:id", isAuthenticated, deleteContactById);
 router.get("/user/:id", isAuthenticated, getUserSpecificContacts);
 
