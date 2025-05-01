@@ -1,31 +1,58 @@
 import { Contact } from "../models/contact.js";
 
-export const createContact = async (req, res) => {
+export const upsertContact = async (req, res) => {
   try {
-    const body = req.body;
-    const requireFields = ["name", "email", "phone", "type"];
+    const id = req.params.id; // optional
+    const { name, email, phone, type } = req.body;
 
-    for (const field of requireFields) {
-      if (!body[field]) {
-        return res.status(400).json({ message });
+    const requiredFields = ["name", "email", "phone", "type"];
+    for (const field of requiredFields) {
+      if (!req.body[field]) {
+        return res.status(400).json({ message: `${field} is required` });
       }
     }
 
-    const { name, email, phone, type } = body;
-
-    const saveContact = await Contact.create({
-      name,
-      email,
-      phone,
-      type,
+    // Check for duplicate name or phone for this user
+    const duplicate = await Contact.findOne({
+      _id: id ? { $ne: id } : { $exists: true },
       user: req.user,
+      $or: [{ name }, { phone }],
     });
-    res.status(201).json({ message: "Contact Created Successfully" });
+
+    if (duplicate) {
+      const field = duplicate.name === name ? "Name" : "Phone number";
+      return res.status(400).json({ message: `${field} already exists` });
+    }
+
+    let contact;
+    if (id) {
+      // Update case
+      contact = await Contact.findByIdAndUpdate(
+        id,
+        { name, email, phone, type, user: req.user },
+        { new: true }
+      );
+      if (!contact)
+        return res.status(404).json({ message: "Contact not found" });
+
+      return res.status(200).json({ message: "Contact updated successfully" });
+    } else {
+      // Create case
+      contact = await Contact.create({
+        name,
+        email,
+        phone,
+        type,
+        user: req.user,
+      });
+      return res.status(201).json({ message: "Contact created successfully" });
+    }
   } catch (err) {
     console.error(err);
-    res
-      .status(500)
-      .json({ message: "Internal Server Error", error: err.message });
+    res.status(500).json({
+      message: "Internal Server Error",
+      error: err.message,
+    });
   }
 };
 
@@ -49,40 +76,6 @@ export const getContactById = async (req, res) => {
   res.status(200).json({
     message: "Contact Fetched Successfully",
     data: contactData,
-  });
-};
-
-export const updateContactById = async (req, res) => {
-  const id = req.params.id;
-  const body = req.body;
-
-  const requireFields = ["name", "email", "phone", "type"];
-
-  for (const field of requireFields) {
-    if (!body[field]) {
-      return res.status(400).json({ message });
-    }
-  }
-
-  const { name, email, phone, type } = body;
-
-  const updatedContactData = await Contact.findByIdAndUpdate(
-    id,
-    {
-      name,
-      email,
-      phone,
-      type,
-      user: req.user,
-    },
-    { new: true }
-  );
-
-  if (!updatedContactData)
-    return res.status(400).json({ message: "No contact Found" });
-
-  res.status(200).json({
-    message: "Contact Updated Successfully",
   });
 };
 
